@@ -68,12 +68,11 @@ Examples:
 - Give me a random number
 
 4. browser
-Use ONLY when user asks to:
-- open websites
-- visit pages
-- browse webpages
-- summarize webpage content
-- extract website information
+Use for:
+- opening websites
+- extracting webpage content
+- searching the web
+- interacting with browser pages
 
 Examples:
 - Open https://google.com
@@ -87,6 +86,7 @@ Examples:
 {"tool":"time"}
 {"tool":"random"}
 {"tool":"browser","input":"https://google.com"}
+{"tool":"browser","input":"best gaming laptop under 80000"}
 
 Otherwise respond normally.
 `,
