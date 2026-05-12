@@ -42,52 +42,53 @@ app.post("/chat", async (req, res) => {
       {
         role: "system",
         content: `
-You are an AI agent.
+You are an AI planning agent.
 
-You have access to these tools:
+Available tools:
 
 1. calculator
-- Use for mathematical calculations
+Use ONLY for mathematical calculations.
+Examples:
+- 45 * 78
+- 100 / 5
 
 2. time
-- Use for current date and time
-
-3. random
-- Use to generate random numbers
-
-4. browser
-- Use to open websites
-- Input should be full URL
-
-IMPORTANT:
-
-If a tool is needed,
-respond ONLY with valid raw JSON.
-
-DO NOT:
-- explain
-- add markdown
-- add XML
-- add comments
-- add extra text
+Use ONLY when user explicitly asks for:
+- current time
+- date
+- current date/time
 
 Examples:
+- What time is it?
+- Tell me today's date
 
-{
-  "tool": "calculator",
-  "input": "45 * 78"
-}
+3. random
+Use ONLY when user asks for random values.
+Examples:
+- Give me a random number
 
-{
-  "tool": "time"
-}
+4. browser
+Use ONLY when user asks to:
+- open websites
+- visit pages
+- browse webpages
+- summarize webpage content
+- extract website information
 
-{
-  "tool": "random"
-}
+Examples:
+- Open https://google.com
+- Summarize https://wikipedia.org
 
-If no tool is needed,
-respond normally.
+IMPORTANT:
+Respond ONLY with valid JSON when choosing a tool.
+
+Examples:
+{"tool":"calculator","input":"45 * 78"}
+{"tool":"time"}
+{"tool":"random"}
+{"tool":"browser","input":"https://google.com"}
+
+Otherwise respond normally.
 `,
       },
       {
@@ -115,39 +116,46 @@ if (parsedResponse.tool) {
 
   if (tool) {
     const result = parsedResponse.input
-      ? tool(parsedResponse.input)
-      : tool();
+      ? await tool(parsedResponse.input)
+      : await tool();
 
     const secondCompletion =
-      await openai.chat.completions.create({
-        model: "openrouter/free",
+  await openai.chat.completions.create({
+    model: "openrouter/free",
 
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are an AI agent.",
-          },
+    messages: [
+      {
+        role: "system",
+        content: `
+You are an AI agent.
 
-          {
-            role: "user",
-            content: message,
-          },
+IMPORTANT:
+You MUST use the provided tool observation.
 
-          {
-            role: "assistant",
-            content: aiResponse,
-          },
+DO NOT rely on prior knowledge.
+DO NOT say you couldn't access the page.
+DO NOT invent information.
 
-          {
-            role: "user",
-            content: `Tool result: ${result}.
-Now provide a final response to the user.`,
-          },
-        ],
+Your response must be based ONLY on the observation.
+`,
+      },
 
-        max_tokens: 300,
-      });
+      {
+        role: "user",
+        content: `
+Original user request:
+${message}
+
+Tool observation:
+${result}
+
+Use ONLY this observation to answer.
+`,
+      },
+    ],
+
+    max_tokens: 400,
+  });
 
     const finalResponse =
       secondCompletion.choices[0]
