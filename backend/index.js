@@ -6,6 +6,7 @@ const OpenAI = require("openai");
 const calculator = require("./tools/calculator");
 const getTime = require("./tools/time");
 const randomNumber = require("./tools/random");
+const openBrowser = require("./tools/browser");
 
 const app = express();
 
@@ -27,6 +28,7 @@ const tools = {
   calculator,
   time: getTime,
   random: randomNumber,
+  browser: openBrowser,
 };
 
 app.post("/chat", async (req, res) => {
@@ -52,6 +54,10 @@ You have access to these tools:
 
 3. random
 - Use to generate random numbers
+
+4. browser
+- Use to open websites
+- Input should be full URL
 
 IMPORTANT:
 
